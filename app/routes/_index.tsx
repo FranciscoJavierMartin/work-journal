@@ -4,12 +4,28 @@ import {
   type ActionFunctionArgs,
 } from '@remix-run/node';
 import { Form } from '@remix-run/react';
+import { PrismaClient } from '@prisma/client';
 
 export async function action({ request }: ActionFunctionArgs) {
+  const db = new PrismaClient();
   const formData = await request.formData();
-  const json = Object.fromEntries(formData);
+  const { date, type, text } = Object.fromEntries(formData);
 
-  console.log('Action', json);
+  if (
+    typeof date !== 'string' ||
+    typeof type !== 'string' ||
+    typeof text !== 'string'
+  ) {
+    throw new Error('Bad request');
+  }
+
+  await db.entry.create({
+    data: {
+      date: new Date(date),
+      type: type,
+      text: text,
+    },
+  });
 
   return redirect('/');
 }
@@ -40,7 +56,7 @@ export default function Index() {
                   className='mr-1'
                   id='work'
                   type='radio'
-                  name='category'
+                  name='type'
                   value='work'
                 />
                 Work
@@ -50,7 +66,7 @@ export default function Index() {
                   className='mr-1'
                   id='learning'
                   type='radio'
-                  name='category'
+                  name='type'
                   value='learning'
                 />
                 Learning
@@ -60,7 +76,7 @@ export default function Index() {
                   className='mr-1'
                   id='interesting-thing'
                   type='radio'
-                  name='category'
+                  name='type'
                   value='interesting-thing'
                 />
                 Interesting thing
