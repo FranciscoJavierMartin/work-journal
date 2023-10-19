@@ -1,5 +1,5 @@
 import { type MetaFunction, type ActionFunctionArgs } from '@remix-run/node';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher, useLoaderData } from '@remix-run/react';
 import { PrismaClient } from '@prisma/client';
 import { format } from 'date-fns';
 import { useEffect, useRef } from 'react';
@@ -26,6 +26,13 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 }
 
+export async function loader() {
+  const db = new PrismaClient();
+  const entries = await db.entry.findMany();
+
+  return entries;
+}
+
 export const meta: MetaFunction = () => {
   return [{ title: 'Work journal' }];
 };
@@ -33,6 +40,14 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   const fetcher = useFetcher();
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const entries = useLoaderData<
+    {
+      id: number;
+      date: Date;
+      type: string;
+      text: string;
+    }[]
+  >();
 
   useEffect(() => {
     if (fetcher.state === 'idle' && textAreaRef.current) {
@@ -122,7 +137,12 @@ export default function Index() {
         </fetcher.Form>
       </div>
 
-      <div className='mt-6'>
+      {entries.map((entry) => (
+        <p key={entry.id}>
+          {entry.type} - {entry.text}
+        </p>
+      ))}
+      {/* <div className='mt-6'>
         <p className='font-bold'>
           Week of February 20<sup>th</sup>
         </p>
@@ -150,7 +170,7 @@ export default function Index() {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
