@@ -1,8 +1,9 @@
 import { type MetaFunction, type ActionFunctionArgs } from '@remix-run/node';
-import { Link, useFetcher, useLoaderData } from '@remix-run/react';
+import { useFetcher, useLoaderData } from '@remix-run/react';
 import { PrismaClient } from '@prisma/client';
 import { format, parseISO, startOfWeek } from 'date-fns';
 import { useEffect, useRef } from 'react';
+import EntriesByType from '@/components/entries-by-type';
 
 export async function action({ request }: ActionFunctionArgs) {
   const db = new PrismaClient();
@@ -78,12 +79,7 @@ export default function Index() {
   }, [fetcher.state]);
 
   return (
-    <div className='max-w-7xl p-6 mx-auto '>
-      <h1 className='text-4xl text-white'>Work journal</h1>
-      <p className='mt-3 text-xl text-gray-400'>
-        Doings and learnings. Updated weekly.
-      </p>
-
+    <div>
       <div className='my-8 border p-3'>
         <p className='italic'>Create an entry</p>
 
@@ -165,44 +161,12 @@ export default function Index() {
               Week of {format(parseISO(week.dateString), 'dd MMMM')}
             </p>
             <div className='mt-3 space-y-4'>
-              {week.work.length > 0 && (
-                <div>
-                  <p>Work</p>
-                  <ul className='ml-8 list-disc'>
-                    {week.work.map((entry) => (
-                      <li key={entry.id}>{entry.text}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {week.learning.length > 0 && (
-                <div>
-                  <p>Learning</p>
-                  <ul className='ml-8 list-disc'>
-                    {week.learning.map((entry) => (
-                      <li key={entry.id} className='group'>
-                        {entry.text}
-                        <Link
-                          to={`/entries/${entry.id}/edit`}
-                          className='ml-2 text-blue-500 opacity-0 group-hover:opacity-100'
-                        >
-                          Edit
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {week.interestingThings.length > 0 && (
-                <div>
-                  <p>Interesting things</p>
-                  <ul className='ml-8 list-disc'>
-                    {week.interestingThings.map((entry) => (
-                      <li key={entry.id}>{entry.text}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <EntriesByType entries={week.work} title='Work' />
+              <EntriesByType entries={week.learning} title='Learning' />
+              <EntriesByType
+                entries={week.interestingThings}
+                title='Interesting things'
+              />
             </div>
           </div>
         ))}
