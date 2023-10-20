@@ -1,29 +1,39 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { Form, useLoaderData } from '@remix-run/react';
 import { PrismaClient } from '@prisma/client';
 import EntryForm from '@/components/entry-form';
+import type { FormEvent } from 'react';
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const db = new PrismaClient();
   const formData = await request.formData();
-  const { date, type, text } = Object.fromEntries(formData);
+  const { _action, date, type, text } = Object.fromEntries(formData);
+  let res: any;
 
-  if (
-    typeof date !== 'string' ||
-    typeof type !== 'string' ||
-    typeof text !== 'string'
-  ) {
-    throw new Error('Bad request');
+  if (_action === 'delete') {
+    res = await db.entry.delete({
+      where: { id: +params.entryId! },
+    });
+  } else {
+    if (
+      typeof date !== 'string' ||
+      typeof type !== 'string' ||
+      typeof text !== 'string'
+    ) {
+      throw new Error('Bad request');
+    }
+
+    res = await db.entry.update({
+      where: { id: +params.entryId! },
+      data: {
+        date: new Date(date),
+        type: type,
+        text: text,
+      },
+    });
   }
 
-  return db.entry.update({
-    where: { id: +params.entryId! },
-    data: {
-      date: new Date(date),
-      type: type,
-      text: text,
-    },
-  });
+  return res;
 }
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -47,11 +57,28 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export default function EditPage() {
   const entry = useLoaderData<typeof loader>();
 
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    if (!confirm('Are you sure?')) {
+      e.preventDefault();
+    }
+  }
+
   return (
     <div className='mt-4'>
       <p>Editing entry {entry.id}</p>
       <div className='mt-8'>
         <EntryForm entry={entry} />
+      </div>
+      <div className='mt-8'>
+        <Form method='post' onSubmit={handleSubmit}>
+          <button
+            name='_action'
+            value='delete'
+            className='text-gray-500 underline'
+          >
+            Delete this entry...
+          </button>
+        </Form>
       </div>
     </div>
   );
