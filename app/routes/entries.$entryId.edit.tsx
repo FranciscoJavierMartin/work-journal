@@ -9,7 +9,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const session = await getSessionFromCookieInsideRequest(request);
 
   if (!session.data.isAdmin) {
-    throw new Response('Not authenticated', { status: 401 });
+    throw new Response('Not authenticated', {
+      status: 401,
+      statusText: 'Not authenticated',
+    });
   }
 
   const db = new PrismaClient();
@@ -45,19 +48,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   if (typeof params.entryId !== 'string' || !/^\d+$/.test(params.entryId)) {
-    throw new Response('Invalid id', { status: 400 });
+    throw new Response('Invalid id', { status: 400, statusText: 'Invalid id' });
   }
 
   const session = await getSessionFromCookieInsideRequest(request);
   if (!session.data.isAdmin) {
-    throw new Response('Not authenticated', { status: 401 });
+    throw new Response('Not authenticated', {
+      status: 401,
+      statusText: 'Not authenticated',
+    });
   }
 
   const db = new PrismaClient();
   const entry = await db.entry.findUnique({ where: { id: +params.entryId } });
 
   if (!entry) {
-    throw new Response('Not found', { status: 404 });
+    throw new Response('Not found', { status: 404, statusText: 'Entry not found', });
   }
 
   return {
