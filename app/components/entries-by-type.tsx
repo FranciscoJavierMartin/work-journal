@@ -3,9 +3,14 @@ import { Link } from '@remix-run/react';
 type EntriesByTypeProps = {
   entries: { id: number; date: string; type: string; text: string }[];
   title: string;
+  canEdit?: boolean;
 };
 
-export default function EntriesByType({ entries, title }: EntriesByTypeProps) {
+export default function EntriesByType({
+  entries,
+  title,
+  canEdit,
+}: EntriesByTypeProps) {
   return entries.length ? (
     <div>
       <p>{title}</p>
@@ -13,12 +18,14 @@ export default function EntriesByType({ entries, title }: EntriesByTypeProps) {
         {entries.map((entry) => (
           <li key={entry.id} className='group'>
             {entry.text}
-            <Link
-              to={`/entries/${entry.id}/edit`}
-              className='ml-2 text-blue-500 opacity-0 group-hover:opacity-100'
-            >
-              Edit
-            </Link>
+            {canEdit && (
+              <Link
+                to={`/entries/${entry.id}/edit`}
+                className='ml-2 text-blue-500 opacity-0 group-hover:opacity-100'
+              >
+                Edit
+              </Link>
+            )}
           </li>
         ))}
       </ul>

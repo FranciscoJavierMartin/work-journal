@@ -90,11 +90,20 @@ export default function Index() {
               Week of {format(parseISO(week.dateString), 'dd MMMM')}
             </p>
             <div className='mt-3 space-y-4'>
-              <EntriesByType entries={week.work} title='Work' />
-              <EntriesByType entries={week.learning} title='Learning' />
+              <EntriesByType
+                entries={week.work}
+                title='Work'
+                canEdit={session.isAdmin}
+              />
+              <EntriesByType
+                entries={week.learning}
+                title='Learning'
+                canEdit={session.isAdmin}
+              />
               <EntriesByType
                 entries={week.interestingThings}
                 title='Interesting things'
+                canEdit={session.isAdmin}
               />
             </div>
           </div>
