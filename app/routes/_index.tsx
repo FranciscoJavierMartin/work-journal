@@ -8,7 +8,7 @@ import { format, parseISO, startOfWeek } from 'date-fns';
 import { PrismaClient } from '@prisma/client';
 import EntriesByType from '@/components/entries-by-type';
 import EntryForm from '@/components/entry-form';
-import { getSession } from '@/session';
+import { getSessionFromCookieInsideRequest } from '@/session';
 
 export async function action({ request }: ActionFunctionArgs) {
   const db = new PrismaClient();
@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSessionFromCookieInsideRequest(request);
   const db = new PrismaClient();
   const entries = await db.entry.findMany();
 

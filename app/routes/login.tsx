@@ -1,10 +1,14 @@
-import { commitSession, getSession } from '@/session';
 import {
   redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from '@remix-run/node';
 import { Form, useLoaderData } from '@remix-run/react';
+import {
+  commitSession,
+  getSession,
+  getSessionFromCookieInsideRequest,
+} from '@/session';
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -28,7 +32,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSessionFromCookieInsideRequest(request);
   return session.data;
 }
 

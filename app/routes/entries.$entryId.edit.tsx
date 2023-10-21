@@ -1,8 +1,8 @@
+import type { FormEvent } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { Form, useLoaderData } from '@remix-run/react';
 import { PrismaClient } from '@prisma/client';
 import EntryForm from '@/components/entry-form';
-import type { FormEvent } from 'react';
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const db = new PrismaClient();
