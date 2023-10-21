@@ -3,6 +3,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { Form, useLoaderData } from '@remix-run/react';
 import { PrismaClient } from '@prisma/client';
 import EntryForm from '@/components/entry-form';
+import { getSessionFromCookieInsideRequest } from '@/session';
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const db = new PrismaClient();
@@ -36,9 +37,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return res;
 }
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   if (typeof params.entryId !== 'string' || !/^\d+$/.test(params.entryId)) {
     throw new Response('Invalid id', { status: 400 });
+  }
+
+  const session = await getSessionFromCookieInsideRequest(request);
+  if (!session.data.isAdmin) {
+    throw new Response('Not authenticated', { status: 401 });
   }
 
   const db = new PrismaClient();
