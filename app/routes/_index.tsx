@@ -1,9 +1,14 @@
-import { type MetaFunction, type ActionFunctionArgs } from '@remix-run/node';
+import {
+  type MetaFunction,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { format, parseISO, startOfWeek } from 'date-fns';
 import { PrismaClient } from '@prisma/client';
 import EntriesByType from '@/components/entries-by-type';
 import EntryForm from '@/components/entry-form';
+import { getSession } from '@/session';
 
 export async function action({ request }: ActionFunctionArgs) {
   const db = new PrismaClient();
@@ -27,7 +32,8 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 }
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'));
   const db = new PrismaClient();
   const entries = await db.entry.findMany();
 
@@ -59,7 +65,7 @@ export async function loader() {
       ),
     }));
 
-  return weeks;
+  return { session: session.data, weeks };
 }
 
 export const meta: MetaFunction = () => {
@@ -67,15 +73,16 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
-  const weeks = useLoaderData<typeof loader>();
+  const { weeks, session } = useLoaderData<typeof loader>();
 
   return (
     <div>
-      <div className='my-8 border p-3'>
-        <p className='italic'>Create an entry</p>
-        <EntryForm />
-      </div>
-
+      {session.isAdmin && (
+        <div className='my-8 border p-3'>
+          <p className='italic'>Create an entry</p>
+          <EntryForm />
+        </div>
+      )}
       <div className='mt-12 space-y-12'>
         {weeks.map((week) => (
           <div key={week.dateString}>
